@@ -132,13 +132,25 @@ defmodule DeepGame.Core.Game do
   end
 
   # LiveView process will actually render DOM
-  def render(game) do
+  def render_info(game) do
     sprite_list = [:paddle, :ball]
     Map.take(game, [:game_state | sprite_list])
   end
 
-  # For DRL
-  def get_actions(_env) do
+  # DRL Environment APIs
+  def get_actions(_game) do
     [:left, :stop, :right]
+  end
+
+  def is_done?(game) do
+    game.state != :running
+  end
+
+  def action(game, action) do
+    handle_input(game, action)
+  end
+
+  def get_observation(game) do
+    render_info(game)
   end
 end

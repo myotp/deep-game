@@ -20,16 +20,6 @@ defmodule DeepGameWeb.GameLive do
     {:ok, socket}
   end
 
-  defp init_new_game(socket) do
-    game = Game.new()
-    socket = render(socket, Game.render(game))
-
-    assign(socket,
-      game_state: :waiting,
-      game: game
-    )
-  end
-
   @impl Phoenix.LiveView
   def handle_event("keyup", %{"key" => " "}, socket) do
     case socket.assigns.game_state do
@@ -79,9 +69,19 @@ defmodule DeepGameWeb.GameLive do
   def handle_info(:tick, socket) do
     game = Game.update(socket.assigns.game, @game_loop_interval)
     socket = assign(socket, game: game)
-    render_info = Game.render(game)
+    render_info = Game.render_info(game)
     socket = render(socket, render_info)
     {:noreply, socket}
+  end
+
+  defp init_new_game(socket) do
+    game = Game.new()
+    socket = render(socket, Game.render_info(game))
+
+    assign(socket,
+      game_state: :waiting,
+      game: game
+    )
   end
 
   defp render(socket, render_info) do
