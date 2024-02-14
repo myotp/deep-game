@@ -3,7 +3,7 @@ defmodule DeepGameWeb.GameLive do
 
   alias DeepGame.Core.Game
 
-  @game_loop_interval 100
+  @game_loop_interval 16
 
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
@@ -22,6 +22,7 @@ defmodule DeepGameWeb.GameLive do
   def handle_event("keyup", %{"key" => " "}, socket) do
     if socket.assigns.game_state == :welcome do
       game = Game.new()
+      socket = render(socket, Game.render(game))
       {:ok, ref} = :timer.send_interval(@game_loop_interval, self(), :tick)
 
       socket =
@@ -38,21 +39,39 @@ defmodule DeepGameWeb.GameLive do
     end
   end
 
-  def handle_event(event, _unsigned_params, socket) do
-    IO.inspect(event, label: "KEY EVENT")
-    {:noreply, socket}
+  def handle_event(event, params, socket) do
+    paddle_direction =
+      case {event, params} do
+        {"keyup", %{"key" => "ArrowLeft"}} -> :stop
+        {"keyup", %{"key" => "ArrowRight"}} -> :stop
+        {"keydown", %{"key" => "ArrowLeft"}} -> :left
+        {"keydown", %{"key" => "ArrowRight"}} -> :right
+        _ -> nil
+      end
+
+    case paddle_direction do
+      nil ->
+        {:noreply, socket}
+
+      _ ->
+        game = socket.assigns.game
+        game = Game.handle_input(game, paddle_direction)
+        {:noreply, assign(socket, game: game)}
+    end
   end
 
   @impl Phoenix.LiveView
   # Actuall GameLoop
   def handle_info(:tick, socket) do
     game = Game.update(socket.assigns.game, @game_loop_interval)
+    socket = assign(socket, game: game)
     render_info = Game.render(game)
     socket = render(socket, render_info)
     {:noreply, socket}
   end
 
-  defp render(socket, _render_info) do
-    socket
+  defp render(socket, render_info) do
+    paddle = render_info.paddle
+    assign(socket, paddle: paddle)
   end
 end
