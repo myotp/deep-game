@@ -41,3 +41,9 @@
     background: #717d7e;
     border-radius: 20px;
 }
+
+.game-container .block.ball {
+    background: #ca6f1e;
+    border-radius: 50%;
+    will-change: left, top;
+}

@@ -72,6 +72,9 @@ defmodule DeepGameWeb.GameLive do
 
   defp render(socket, render_info) do
     paddle = render_info.paddle
-    assign(socket, paddle: paddle)
+    paddle = %{paddle | x: round(paddle.x), y: round(paddle.y)}
+    ball_x = render_info.ball.x |> round()
+    ball_y = render_info.ball.y |> round()
+    assign(socket, paddle: paddle, ball: %{x: ball_x, y: ball_y})
   end
 end
