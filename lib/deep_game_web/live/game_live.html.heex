@@ -1,0 +1,29 @@
+<div phx-window-keydown="keydown" phx-window-keyup="keyup" phx-throttle="200">
+  <div :if={@game_state == :welcome} class="welcome-container">
+    <h1>
+      <p>Hello <%= @username %> from HTML</p>
+      <p>Press SPACE to start</p>
+    </h1>
+  </div>
+
+  <div :if={@game_state == :running or @game_state == :waiting} class="game-container">
+    <div :if={@game_state == :waiting} class="help-container">
+      Press SPACE to start playing.
+    </div>
+    <div
+      class="block ball"
+      style={"transform: translate3d(#{@ball.x}px, #{@ball.y}px, 0px);
+            width: #{@ball.width}px;
+            height: #{@ball.height}px; "}
+    >
+    </div>
+
+    <div
+      class="block paddle"
+      style={"transform: translate3d(#{@paddle.x}px, #{@paddle.y}px, 0px);
+            width: #{@paddle.width}px;
+            height: #{@paddle.height}px; "}
+    >
+    </div>
+  </div>
+</div>

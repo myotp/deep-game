@@ -1,0 +1,57 @@
+.welcome-container {
+    margin: 6rem 12rem 12rem 12rem;
+    color: #a9a9b3;
+    background: #292a2d;
+    text-align: center;
+}
+
+@media screen and (max-width: 700px) {
+    .welcome-container {
+        margin: 6rem 2rem 2rem 2rem;
+    }
+
+    .welcome-container .start-play {
+        display: none;
+    }
+}
+
+.game-container {
+    position: relative;
+    /* Subtract half of the board width*/
+    /*    left: calc(50% - 260px); */
+    width: 800px;
+    /* 宽度为200像素 */
+    height: 600px;
+    /* 高度为100像素 */
+    background-color: #f0f0f0;
+    /* 背景颜色 */
+    border: 1px solid #ccc;
+    /* 边框 */
+    padding: 0px;
+    /* 内边距 */
+    margin: 50px auto 0;
+}
+
+.game-container .block {
+    display: block;
+    position: absolute;
+}
+
+.game-container .block.paddle {
+    background: #717d7e;
+    border-radius: 20px;
+}
+
+.game-container .block.ball {
+    background: #ca6f1e;
+    border-radius: 50%;
+    will-change: left, top;
+}
+
+.help-container {
+    position: absolute;
+    left: 240px;
+    top: 300px;
+    font-size: 24px;
+    max-width: 440px;
+}
