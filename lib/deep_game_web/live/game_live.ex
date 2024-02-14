@@ -20,24 +20,36 @@ defmodule DeepGameWeb.GameLive do
     {:ok, socket}
   end
 
+  defp init_new_game(socket) do
+    game = Game.new()
+    socket = render(socket, Game.render(game))
+
+    assign(socket,
+      game_state: :waiting,
+      game: game
+    )
+  end
+
   @impl Phoenix.LiveView
   def handle_event("keyup", %{"key" => " "}, socket) do
-    if socket.assigns.game_state == :welcome do
-      game = Game.new()
-      socket = render(socket, Game.render(game))
-      {:ok, ref} = :timer.send_interval(@game_loop_interval, self(), :tick)
+    case socket.assigns.game_state do
+      :welcome ->
+        socket = init_new_game(socket)
+        {:noreply, socket}
 
-      socket =
-        assign(socket,
-          game_state: :running,
-          game: game,
-          timer_ref: ref
-        )
+      :waiting ->
+        {:ok, ref} = :timer.send_interval(@game_loop_interval, self(), :tick)
 
-      {:noreply, socket}
-    else
-      IO.puts("Game already started")
-      {:noreply, socket}
+        socket =
+          assign(socket,
+            game_state: :running,
+            timer_ref: ref
+          )
+
+        {:noreply, socket}
+
+      _ ->
+        {:noreply, socket}
     end
   end
 
@@ -73,9 +85,17 @@ defmodule DeepGameWeb.GameLive do
   end
 
   defp render(socket, render_info) do
-    paddle = render_sprite(render_info, :paddle)
-    ball = render_sprite(render_info, :ball)
-    assign(socket, paddle: paddle, ball: ball)
+    case render_info.game_state do
+      :running ->
+        paddle = render_sprite(render_info, :paddle)
+        ball = render_sprite(render_info, :ball)
+        assign(socket, paddle: paddle, ball: ball)
+
+      {:finished, :lost} ->
+        tref = socket.assigns.timer_ref
+        :timer.cancel(tref)
+        init_new_game(socket)
+    end
   end
 
   defp render_sprite(render_info, sprite_key) do

@@ -47,3 +47,11 @@
     border-radius: 50%;
     will-change: left, top;
 }
+
+.help-container {
+    position: absolute;
+    left: 240px;
+    top: 300px;
+    font-size: 24px;
+    max-width: 440px;
+}

@@ -1,5 +1,6 @@
 defmodule DeepGame.Core.Game do
   defstruct [
+    :game_state,
     :ball,
     :paddle,
     paddle_direction: 0,
@@ -9,11 +10,11 @@ defmodule DeepGame.Core.Game do
 
   @screen_width 800
   @screen_height 600
-  @paddle_width 300
-  @paddle_height 30
+  @paddle_width 100
+  @paddle_height 10
   @paddle_speed 0.3
   @init_ball_speed 0.1
-  @ball_r 30
+  @ball_r 8
 
   # APIs for GameLoop
   def new() do
@@ -21,6 +22,7 @@ defmodule DeepGame.Core.Game do
     ball_y = paddle_y + @paddle_height / 2 + @ball_r
 
     %__MODULE__{
+      game_state: :running,
       paddle: %{
         x: @screen_width / 2,
         y: paddle_y,
@@ -53,6 +55,15 @@ defmodule DeepGame.Core.Game do
     game
     |> update_paddle(ts)
     |> update_ball(ts)
+    |> check_lost()
+  end
+
+  defp check_lost(game) do
+    if game.ball.y < @ball_r do
+      %__MODULE__{game | game_state: {:finished, :lost}}
+    else
+      game
+    end
   end
 
   defp update_paddle(
@@ -122,7 +133,8 @@ defmodule DeepGame.Core.Game do
 
   # LiveView process will actually render DOM
   def render(game) do
-    Map.take(game, [:paddle, :ball])
+    sprite_list = [:paddle, :ball]
+    Map.take(game, [:game_state | sprite_list])
   end
 
   # For DRL
