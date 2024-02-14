@@ -9,19 +9,19 @@ defmodule DeepGame.Core.Game do
 
   @screen_width 800
   @screen_height 600
-  @paddle_width 100
-  @paddle_height 10
+  @paddle_width 300
+  @paddle_height 30
   @paddle_speed 0.3
   @init_ball_speed 0.1
-  @ball_r 5
+  @ball_r 30
 
   # APIs for GameLoop
   def new() do
-    paddle_x = div(@screen_width - @paddle_width, 2)
+    paddle_x = div(@screen_width, 2)
     paddle_y = @screen_height - 100
 
-    ball_x = paddle_x + div(@paddle_width, 2) - @ball_r
-    ball_y = paddle_y - @ball_r * 2
+    ball_x = div(@screen_width, 2)
+    ball_y = paddle_y - @paddle_height / 2 - @ball_r
 
     %__MODULE__{
       paddle: %{x: paddle_x, y: paddle_y, width: @paddle_width, height: @paddle_height},
@@ -58,8 +58,8 @@ defmodule DeepGame.Core.Game do
          ts
        ) do
     x = x + paddle_direction * @paddle_speed * ts
-    x = max(0, x)
-    x = min(@screen_width - @paddle_width, x)
+    x = max(@paddle_width / 2, x)
+    x = min(@screen_width - @paddle_width / 2, x)
     %__MODULE__{game | paddle: %{game.paddle | x: x, y: y}}
   end
 
@@ -76,12 +76,13 @@ defmodule DeepGame.Core.Game do
 
   defp maybe_bounce_x(x, dx) do
     cond do
-      x < 0 ->
-        {abs(x), dx * -1}
+      x < @ball_r ->
+        x = @ball_r - x + @ball_r
+        {x, dx * -1}
 
-      x + 2 * @ball_r > @screen_width ->
-        d = x + 2 * @ball_r - @screen_width
-        x = @screen_width - d - 2 * @ball_r
+      x + @ball_r > @screen_width ->
+        d = x + @ball_r - @screen_width
+        x = @screen_width - d - @ball_r
         {x, dx * -1}
 
       true ->
@@ -91,7 +92,7 @@ defmodule DeepGame.Core.Game do
 
   defp maybe_bounce_top(y, dy) do
     cond do
-      y < 0 -> {abs(y), dy * -1}
+      y < @ball_r -> {@ball_r - y + @ball_r, dy * -1}
       true -> {y, dy}
     end
   end
@@ -100,11 +101,12 @@ defmodule DeepGame.Core.Game do
     {y, -1}
   end
 
-  defp maybe_bounce_paddle(x, y, dy, paddel) do
-    if y + 2 * @ball_r > paddel.y and x > paddel.x - @ball_r and
-         x < paddel.x + paddel.width - @ball_r do
-      d = y + 2 * @ball_r - paddel.y
-      y = paddel.y - d - 2 * @ball_r
+  defp maybe_bounce_paddle(x, y, dy, paddle) do
+    if y + @ball_r + paddle.height / 2 > paddle.y and
+         x > paddle.x - paddle.width / 2 and
+         x < paddle.x + paddle.width / 2 do
+      d = y + @ball_r + paddle.height / 2 - paddle.y
+      y = y - d
       {y, -1}
     else
       {y, dy}

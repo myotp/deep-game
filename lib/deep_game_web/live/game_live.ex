@@ -71,10 +71,15 @@ defmodule DeepGameWeb.GameLive do
   end
 
   defp render(socket, render_info) do
-    paddle = render_info.paddle
-    paddle = %{paddle | x: round(paddle.x), y: round(paddle.y)}
-    ball_x = render_info.ball.x |> round()
-    ball_y = render_info.ball.y |> round()
-    assign(socket, paddle: paddle, ball: %{x: ball_x, y: ball_y})
+    paddle = render_sprite(render_info, :paddle)
+    ball = render_sprite(render_info, :ball)
+    assign(socket, paddle: paddle, ball: ball)
+  end
+
+  defp render_sprite(render_info, sprite_key) do
+    sprite = render_info[sprite_key]
+    x = round(sprite.x - sprite.width / 2)
+    y = round(sprite.y - sprite.height / 2)
+    %{x: x, y: y, width: sprite.width, height: sprite.height}
   end
 end
