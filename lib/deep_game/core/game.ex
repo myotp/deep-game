@@ -17,16 +17,18 @@ defmodule DeepGame.Core.Game do
 
   # APIs for GameLoop
   def new() do
-    paddle_x = div(@screen_width, 2)
-    paddle_y = @screen_height - 100
-
-    ball_x = div(@screen_width, 2)
-    ball_y = paddle_y - @paddle_height / 2 - @ball_r
+    paddle_y = 100
+    ball_y = paddle_y + @paddle_height / 2 + @ball_r
 
     %__MODULE__{
-      paddle: %{x: paddle_x, y: paddle_y, width: @paddle_width, height: @paddle_height},
+      paddle: %{
+        x: @screen_width / 2,
+        y: paddle_y,
+        width: @paddle_width,
+        height: @paddle_height
+      },
       ball: %{
-        x: ball_x,
+        x: @screen_width / 2,
         y: ball_y,
         speed_x: @init_ball_speed,
         speed_y: @init_ball_speed,
@@ -92,22 +94,27 @@ defmodule DeepGame.Core.Game do
 
   defp maybe_bounce_top(y, dy) do
     cond do
-      y < @ball_r -> {@ball_r - y + @ball_r, dy * -1}
-      true -> {y, dy}
+      y + @ball_r > @screen_height ->
+        d = y + @ball_r - @screen_height
+        y = @screen_height - d - @ball_r
+        {y, dy * -1}
+
+      true ->
+        {y, dy}
     end
   end
 
-  defp maybe_bounce_paddle(_, y, -1, _) do
-    {y, -1}
+  defp maybe_bounce_paddle(_, y, 1, _) do
+    {y, 1}
   end
 
   defp maybe_bounce_paddle(x, y, dy, paddle) do
-    if y + @ball_r + paddle.height / 2 > paddle.y and
+    if y - @ball_r - paddle.height / 2 < paddle.y and
          x > paddle.x - paddle.width / 2 and
          x < paddle.x + paddle.width / 2 do
-      d = y + @ball_r + paddle.height / 2 - paddle.y
-      y = y - d
-      {y, -1}
+      d = paddle.y - (y - @ball_r - paddle.height / 2)
+      y = y + d
+      {y, 1}
     else
       {y, dy}
     end

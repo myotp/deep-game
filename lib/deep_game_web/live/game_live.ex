@@ -5,6 +5,8 @@ defmodule DeepGameWeb.GameLive do
 
   @game_loop_interval 16
 
+  @screen_height 600
+
   @impl Phoenix.LiveView
   def mount(_params, _session, socket) do
     socket =
@@ -79,7 +81,7 @@ defmodule DeepGameWeb.GameLive do
   defp render_sprite(render_info, sprite_key) do
     sprite = render_info[sprite_key]
     x = round(sprite.x - sprite.width / 2)
-    y = round(sprite.y - sprite.height / 2)
+    y = @screen_height - round(sprite.y + sprite.height / 2)
     %{x: x, y: y, width: sprite.width, height: sprite.height}
   end
 end
