@@ -1,5 +1,11 @@
-<div phx-window-keydown="keydown" phx-window-keyup="keyup" phx-throttle="2000">
-  <h1>
-    <p>Hello <%= @username %> from HTML</p>
-  </h1>
+<div phx-window-keydown="keydown" phx-window-keyup="keyup" phx-throttle="200">
+  <div :if={@game_state == :welcome} class="welcome-container">
+    <h1>
+      <p>Hello <%= @username %> from HTML</p>
+    </h1>
+  </div>
+
+  <div :if={@game_state == :running}>
+    Game is running...
+  </div>
 </div>
