@@ -17,7 +17,7 @@ defmodule DeepGameWeb.Router do
   scope "/", DeepGameWeb do
     pipe_through :browser
 
-    get "/", PageController, :home
+    live "/", GameLive
   end
 
   # Other scopes may use custom stacks.
