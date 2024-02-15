@@ -121,6 +121,7 @@ defmodule DeepGame.Core.Game do
 
   defp maybe_bounce_paddle(x, y, dy, paddle) do
     if y - @ball_r - paddle.height / 2 < paddle.y and
+         y - paddle.height / 2 > paddle.y and
          x > paddle.x - paddle.width / 2 and
          x < paddle.x + paddle.width / 2 do
       d = paddle.y - (y - @ball_r - paddle.height / 2)

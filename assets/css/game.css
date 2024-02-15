@@ -23,9 +23,9 @@
     /* 宽度为200像素 */
     height: 600px;
     /* 高度为100像素 */
-    background-color: #f0f0f0;
+    background-color: #e6c66f;
     /* 背景颜色 */
-    border: 1px solid #ccc;
+    border: 1px solid #b31616;
     /* 边框 */
     padding: 0px;
     /* 内边距 */
@@ -38,12 +38,12 @@
 }
 
 .game-container .block.paddle {
-    background: #717d7e;
+    background: #3361eb;
     border-radius: 20px;
 }
 
 .game-container .block.ball {
-    background: #ca6f1e;
+    background: #79158e;
     border-radius: 50%;
     will-change: left, top;
 }
