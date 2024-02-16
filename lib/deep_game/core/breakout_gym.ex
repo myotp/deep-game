@@ -26,6 +26,13 @@ defmodule DeepGame.Core.BreakoutGym do
     |> condense()
   end
 
+  def observation_to_heatmap(game) do
+    game
+    |> get_observation()
+    |> condense()
+    |> Nx.to_heatmap()
+  end
+
   defp background() do
     Nx.broadcast(0, {@screen_height, @screen_width})
   end
