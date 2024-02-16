@@ -2,6 +2,7 @@ defmodule DeepGameWeb.GameLive do
   use Phoenix.LiveView
 
   alias DeepGame.Core.Breakout
+  alias DeepGame.Core.BreakoutGym
 
   @game_loop_interval 16
 
@@ -70,8 +71,18 @@ defmodule DeepGameWeb.GameLive do
     game = Breakout.update(socket.assigns.game, @game_loop_interval)
     socket = assign(socket, game: game)
     render_info = Breakout.render_info(game)
+    maybe_show_game_heatmap(game)
     socket = render(socket, render_info)
     {:noreply, socket}
+  end
+
+  defp maybe_show_game_heatmap(game) do
+    if Enum.random(1..1000) < 10 do
+      Task.start(fn ->
+        BreakoutGym.game_to_heatmap(game)
+        |> IO.inspect()
+      end)
+    end
   end
 
   defp init_new_game(socket) do

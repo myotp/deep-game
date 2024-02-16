@@ -27,7 +27,7 @@ defmodule DeepGame.Core.BreakoutGym do
     |> condense()
   end
 
-  def observation_to_heatmap(game) do
+  def game_to_heatmap(game) do
     game
     |> get_observation()
     |> condense()
