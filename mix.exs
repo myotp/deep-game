@@ -51,7 +51,8 @@ defmodule DeepGame.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.2"},
-      {:nx, "~> 0.6.4"}
+      {:nx, "~> 0.6.4"},
+      {:exla, "~> 0.6.4"}
     ]
   end
 
