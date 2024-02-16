@@ -1,5 +1,5 @@
-defmodule DeepGame.Core.Breakout do
-  use DeepGame.Core.BreakoutConst
+defmodule DeepGame.Game.Breakout do
+  use DeepGame.Game.BreakoutConst
 
   defstruct [
     :game_state,

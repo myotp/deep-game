@@ -1,9 +1,9 @@
-defmodule DeepGame.Core.BreakoutGym do
-  use DeepGame.Core.BreakoutConst
+defmodule DeepGame.Gym.BreakoutGym do
+  use DeepGame.Game.BreakoutConst
   alias DeepGame.Gym.Utils
   import Nx.Defn
 
-  alias DeepGame.Core.Breakout
+  alias DeepGame.Game.Breakout
   # DRL Environment APIs
   def get_actions(_game) do
     [:left, :stop, :right]
@@ -25,13 +25,6 @@ defmodule DeepGame.Core.BreakoutGym do
     |> put_ball(render_info.ball)
     |> reverse_y()
     |> condense()
-  end
-
-  def game_to_heatmap(game) do
-    game
-    |> get_observation()
-    |> condense()
-    |> Nx.to_heatmap()
   end
 
   defp background() do

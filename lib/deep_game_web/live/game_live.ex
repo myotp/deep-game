@@ -1,8 +1,8 @@
 defmodule DeepGameWeb.GameLive do
   use Phoenix.LiveView
 
-  alias DeepGame.Core.Breakout
-  alias DeepGame.Core.BreakoutGym
+  alias DeepGame.Game.Breakout
+  alias DeepGame.Gym.BreakoutGym
 
   @game_loop_interval 16
 
@@ -79,7 +79,8 @@ defmodule DeepGameWeb.GameLive do
   defp maybe_show_game_heatmap(game) do
     if Enum.random(1..1000) < 10 do
       Task.start(fn ->
-        BreakoutGym.game_to_heatmap(game)
+        BreakoutGym.get_observation(game)
+        |> Nx.to_heatmap()
         |> IO.inspect()
       end)
     end

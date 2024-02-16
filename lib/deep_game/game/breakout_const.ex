@@ -1,4 +1,4 @@
-defmodule DeepGame.Core.BreakoutConst do
+defmodule DeepGame.Game.BreakoutConst do
   defmacro __using__(_) do
     quote do
       @screen_width 800
