@@ -1,5 +1,6 @@
 defmodule DeepGame.Core.BreakoutGym do
   use DeepGame.Core.BreakoutConst
+  alias DeepGame.Gym.Utils
   import Nx.Defn
 
   alias DeepGame.Core.Breakout
@@ -51,7 +52,13 @@ defmodule DeepGame.Core.BreakoutGym do
   defp put_ball(background, ball) do
     row = round(ball.y)
     col = round(ball.x - ball.width / 2)
-    ball_t = Nx.broadcast(128, {ball.height, ball.width})
+
+    ball_t =
+      Nx.multiply(
+        Nx.broadcast(200, {ball.height, ball.width}),
+        Utils.ball_gray_scales(round(ball.width / 2))
+      )
+
     Nx.put_slice(background, [row, col], ball_t)
   end
 
