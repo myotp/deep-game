@@ -32,7 +32,7 @@ defmodule DeepGame.Examples.DemoBreakout do
 
     case render_info.game_state do
       :running ->
-        maybe_show_game_heatmap(game)
+        maybe_show_game_heatmap(game, n)
         game_loop(game, n - 1, action)
 
       other_state ->
@@ -40,15 +40,13 @@ defmodule DeepGame.Examples.DemoBreakout do
     end
   end
 
-  defp maybe_show_game_heatmap(game) do
-    if Enum.random(1..1000) < 10 do
-      Task.start(fn ->
-        IO.puts("-- screen --")
+  defp maybe_show_game_heatmap(game, 33) do
+    IO.puts("-- screen --")
 
-        BreakoutGym.get_observation(game)
-        |> Nx.to_heatmap()
-        |> IO.inspect()
-      end)
-    end
+    BreakoutGym.get_observation(game)
+    |> Nx.to_heatmap()
+    |> IO.inspect()
   end
+
+  defp maybe_show_game_heatmap(_, _), do: :ok
 end
