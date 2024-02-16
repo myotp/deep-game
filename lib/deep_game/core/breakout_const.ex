@@ -7,7 +7,7 @@ defmodule DeepGame.Core.BreakoutConst do
       @paddle_height 10
       @paddle_speed 0.3
       @init_ball_speed 0.1
-      @ball_r 10
+      @ball_r 8
     end
   end
 end
