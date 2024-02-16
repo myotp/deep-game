@@ -2,9 +2,14 @@ defmodule DeepGame.Examples.DemoBreakout do
   alias DeepGame.Game.Breakout
   alias DeepGame.Gym.BreakoutGym
 
-  def run() do
+  def run(0) do
+    :done
+  end
+
+  def run(n) do
     game = Breakout.new()
     game_loop(game, 60, random_action())
+    run(n - 1)
   end
 
   defp random_action() do
