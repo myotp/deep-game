@@ -1,4 +1,6 @@
-defmodule DeepGame.Core.Game do
+defmodule DeepGame.Game.Breakout do
+  use DeepGame.Game.BreakoutConst
+
   defstruct [
     :game_state,
     :ball,
@@ -7,14 +9,6 @@ defmodule DeepGame.Core.Game do
     ball_direction_x: 1,
     ball_direction_y: -1
   ]
-
-  @screen_width 800
-  @screen_height 600
-  @paddle_width 100
-  @paddle_height 10
-  @paddle_speed 0.3
-  @init_ball_speed 0.1
-  @ball_r 8
 
   # APIs for GameLoop
   def new() do
@@ -136,22 +130,5 @@ defmodule DeepGame.Core.Game do
   def render_info(game) do
     sprite_list = [:paddle, :ball]
     Map.take(game, [:game_state | sprite_list])
-  end
-
-  # DRL Environment APIs
-  def get_actions(_game) do
-    [:left, :stop, :right]
-  end
-
-  def is_done?(game) do
-    game.state != :running
-  end
-
-  def action(game, action) do
-    handle_input(game, action)
-  end
-
-  def get_observation(game) do
-    render_info(game)
   end
 end
