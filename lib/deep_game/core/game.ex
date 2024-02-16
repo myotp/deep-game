@@ -1,4 +1,6 @@
 defmodule DeepGame.Core.Game do
+  use DeepGame.Core.BreakoutConst
+
   defstruct [
     :game_state,
     :ball,
@@ -7,14 +9,6 @@ defmodule DeepGame.Core.Game do
     ball_direction_x: 1,
     ball_direction_y: -1
   ]
-
-  @screen_width 800
-  @screen_height 600
-  @paddle_width 100
-  @paddle_height 10
-  @paddle_speed 0.3
-  @init_ball_speed 0.1
-  @ball_r 8
 
   # APIs for GameLoop
   def new() do
