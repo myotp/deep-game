@@ -17,9 +17,22 @@ defmodule DeepGame.Examples.DemoBreakout do
 
   defp game_loop(game, n, action) do
     Process.sleep(16)
-    game = Breakout.handle_input(game, action)
-    maybe_show_game_heatmap(game)
-    game_loop(game, n - 1, action)
+
+    game =
+      game
+      |> Breakout.handle_input(action)
+      |> Breakout.update(16)
+
+    render_info = Breakout.render_info(game)
+
+    case render_info.game_state do
+      :running ->
+        maybe_show_game_heatmap(game)
+        game_loop(game, n - 1, action)
+
+      other_state ->
+        IO.inspect(other_state, label: "Game finished")
+    end
   end
 
   defp maybe_show_game_heatmap(game) do
