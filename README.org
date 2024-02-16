@@ -1,15 +1,9 @@
 * Nx
 # 图形元素变成heatmap
-t = Nx.broadcast(128, {10, 10})
-Nx.to_heatmap(t)
-
 t = Nx.broadcast(63, {10, 10})
 Nx.to_heatmap(t)
 
 t = Nx.iota({28,28})
-Nx.to_heatmap(t)
-
-t = Nx.iota({100,75})
 Nx.to_heatmap(t)
 
 # 图形界面Y从下到上可能需要reverse
@@ -18,5 +12,16 @@ Nx.reverse(t, axes: [0])
 
 # 在空白底板上添加图形
 t = Nx.broadcast(0, {10, 10})
-updates = Nx.tensor([[99, 88], [77, 66]])
-Nx.put_slice(t, [1,2], updates)
+updates = Nx.tensor([[99, 88, 77], [77, 66, 88]])
+t2 = Nx.put_slice(t, [1,2], updates)
+Nx.to_heatmap(t2)
+
+t = Nx.iota({4,4})
+# top-left
+Nx.slice(t, [0,0], [2, 2])
+
+{x,y} = Nx.shape(t)
+# 每隔一行取一行
+t1 = Nx.slice_along_axis(t, 0, x-1, axis: 0, strides: 2)
+# 每隔一列取一列
+t2 = Nx.slice_along_axis(t1, 0, y-1, axis: 1, strides: 2)
