@@ -1,5 +1,5 @@
 defmodule DeepGame.Core.BreakoutGym do
-  alias DeepGame.Core.Game
+  alias DeepGame.Core.Breakout
   # DRL Environment APIs
   def get_actions(_game) do
     [:left, :stop, :right]
@@ -10,10 +10,10 @@ defmodule DeepGame.Core.BreakoutGym do
   end
 
   def action(game, action) do
-    Game.handle_input(game, action)
+    Breakout.handle_input(game, action)
   end
 
   def get_observation(game) do
-    Game.render_info(game)
+    Breakout.render_info(game)
   end
 end

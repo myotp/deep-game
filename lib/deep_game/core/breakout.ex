@@ -1,4 +1,4 @@
-defmodule DeepGame.Core.Game do
+defmodule DeepGame.Core.Breakout do
   use DeepGame.Core.BreakoutConst
 
   defstruct [

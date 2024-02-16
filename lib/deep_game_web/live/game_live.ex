@@ -1,7 +1,7 @@
 defmodule DeepGameWeb.GameLive do
   use Phoenix.LiveView
 
-  alias DeepGame.Core.Game
+  alias DeepGame.Core.Breakout
 
   @game_loop_interval 16
 
@@ -59,7 +59,7 @@ defmodule DeepGameWeb.GameLive do
 
       _ ->
         game = socket.assigns.game
-        game = Game.handle_input(game, paddle_direction)
+        game = Breakout.handle_input(game, paddle_direction)
         {:noreply, assign(socket, game: game)}
     end
   end
@@ -67,16 +67,16 @@ defmodule DeepGameWeb.GameLive do
   @impl Phoenix.LiveView
   # Actuall GameLoop
   def handle_info(:tick, socket) do
-    game = Game.update(socket.assigns.game, @game_loop_interval)
+    game = Breakout.update(socket.assigns.game, @game_loop_interval)
     socket = assign(socket, game: game)
-    render_info = Game.render_info(game)
+    render_info = Breakout.render_info(game)
     socket = render(socket, render_info)
     {:noreply, socket}
   end
 
   defp init_new_game(socket) do
-    game = Game.new()
-    socket = render(socket, Game.render_info(game))
+    game = Breakout.new()
+    socket = render(socket, Breakout.render_info(game))
 
     assign(socket,
       game_state: :waiting,
