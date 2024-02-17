@@ -3,15 +3,15 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
 
   def build_model() do
     Axon.input("input", shape: {nil, 6})
-    |> Axon.dense(512, activation: :relu)
-    |> Axon.dense(128, activation: :relu)
+    |> Axon.dense(256, activation: :relu)
+    |> Axon.dropout(rate: 0.2)
     |> Axon.dense(3, activation: :softmax)
   end
 
   def train_model(model) do
     {init_fn, _predict_fn} = Axon.build(model)
     init_random_params = init_fn.(Nx.template({1, 6}, :f32), %{})
-    loop_train(model, {init_random_params, init_fn}, 5)
+    loop_train(model, {init_random_params, init_fn}, 20)
   end
 
   def test_params(model, params) do
@@ -58,7 +58,7 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
       :categorical_cross_entropy,
       Polaris.Optimizers.adamw(learning_rate: 0.001)
     )
-    |> Axon.Loop.run(Stream.zip(observations, actions), %{}, epochs: 50, compiler: EXLA)
+    |> Axon.Loop.run(Stream.zip(observations, actions), %{}, epochs: 10, compiler: EXLA)
   end
 
   def gen_random_episode_with_params(model, params, init_fn) do
