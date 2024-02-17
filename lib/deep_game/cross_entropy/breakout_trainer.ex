@@ -63,10 +63,10 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
 
   defp gen_random_episode_with_params(model, params) do
     episode =
-      1..200
+      1..2000
       |> Enum.map(fn _ -> one_episode_with_params(model, params) end)
       |> Enum.sort_by(fn {reward, _} -> reward end, :desc)
-      |> Enum.take(5)
+      |> Enum.take(10)
 
     episode
     |> Enum.map(fn {reward, _} -> reward end)

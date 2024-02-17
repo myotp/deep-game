@@ -23,7 +23,21 @@ defmodule DeepGame.CrossEntropy.BreakoutEnv do
   end
 
   def random_ball(ball) do
-    %{ball | y: 400, x: Enum.random(100..700), speed_y: -0.5, speed_x: Enum.random([-0.5, 0.5])}
+    %{
+      ball
+      | y: Enum.random(350..420),
+        x: Enum.random(100..700),
+        speed_y: random_speed_y(),
+        speed_x: random_speed_x()
+    }
+  end
+
+  defp random_speed_x() do
+    0.5 * Enum.random([1, -1]) * Enum.random(85..115) / 100
+  end
+
+  defp random_speed_y() do
+    -0.5 * Enum.random(85..115) / 100
   end
 
   def step(env, action) do
@@ -51,6 +65,13 @@ defmodule DeepGame.CrossEntropy.BreakoutEnv do
   end
 
   defp game_to_observations(game) do
-    [game.ball.speed_x, game.ball.speed_y, game.ball.x / 800, game.ball.y / 600, game.paddle.x / 800, game.paddle.y / 600]
+    [
+      game.ball.speed_x,
+      game.ball.speed_y,
+      game.ball.x / 800,
+      game.ball.y / 600,
+      game.paddle.x / 800,
+      game.paddle.y / 600
+    ]
   end
 end
