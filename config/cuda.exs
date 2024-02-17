@@ -76,3 +76,5 @@ config :exla, :default_client, :cuda
 config :exla, :clients,
   cuda: [platform: :cuda, preallocate: true, memory_fraction: 0.95],
   host: [platform: :host]
+
+config :deep_game, debug_print_breakout_game_screen_heatmap: true

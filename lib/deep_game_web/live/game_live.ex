@@ -77,13 +77,17 @@ defmodule DeepGameWeb.GameLive do
   end
 
   defp maybe_show_game_heatmap(game) do
-    if Enum.random(1..1000) < 10 do
+    if debug?() and Enum.random(1..1000) < 10 do
       Task.start(fn ->
         BreakoutGym.get_observation(game)
         |> Nx.to_heatmap()
         |> IO.inspect()
       end)
     end
+  end
+
+  defp debug?() do
+    Application.get_env(:deep_game, :debug_print_breakout_game_screen_heatmap, false)
   end
 
   defp init_new_game(socket) do
