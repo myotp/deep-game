@@ -9,20 +9,20 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
 
   def train_model(model) do
     {init_fn, _predict_fn} = Axon.build(model)
-    init_random_params = init_fn.(Nx.template({1, 6}, :f32), %{})
-    loop_train(model, init_random_params, 3)
+    # init_random_params = init_fn.(Nx.template({1, 6}, :f32), %{})
+    loop_train(model, {nil, init_fn}, 3)
   end
 
-  def loop_train(_model, params, 0) do
+  def loop_train(_model, {params, _}, 0) do
     {:done, params}
   end
 
-  def loop_train(model, params, n) do
-    {observations, actions} = gen_random_episode_with_params(model, params)
+  def loop_train(model, {params, init_fn}, n) do
+    {observations, actions} = gen_random_episode_with_params(model, params, init_fn)
     observations_t = Nx.tensor(observations)
     actions_t = Nx.tensor(actions)
     updated_params = train_model(model, observations_t, actions_t)
-    loop_train(model, updated_params, n - 1)
+    loop_train(model, {updated_params, init_fn}, n - 1)
   end
 
   def train_model(model, observations, actions) do
@@ -34,10 +34,10 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     |> Axon.Loop.run({observations, actions}, %{}, epochs: 1, compiler: EXLA)
   end
 
-  def gen_random_episode_with_params(model, params) do
+  def gen_random_episode_with_params(model, params, init_fn) do
     episode =
       1..10000
-      |> Enum.map(fn _ -> one_episode_with_params(model, params) end)
+      |> Enum.map(fn _ -> one_episode_with_params(model, params, init_fn) end)
       |> Enum.sort_by(fn {reward, _} -> reward end, :desc)
       |> Enum.take(100)
 
@@ -47,25 +47,29 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     |> IO.inspect(label: "Top 5 rewards: ")
 
     observations =
-      Enum.map(episode, fn {observations, _action, _reward} ->
-        observations
+      Enum.map(episode, fn {_reward, steps} ->
+        Enum.map(steps, fn {observations, _action, _reward} ->
+          observations
+        end)
       end)
 
     actions =
-      Enum.map(episode, fn {_observations, action, _reward} ->
-        action
+      Enum.map(episode, fn {_reward, steps} ->
+        Enum.map(steps, fn {_observations, action, _reward} ->
+          action
+        end)
       end)
 
     {observations, actions}
   end
 
-  def gen_random_episode(_percentile) do
-    1..10000
-    |> Enum.map(fn _ -> random_episode() end)
-    |> Enum.sort_by(fn {reward, _} -> reward end, :desc)
-    |> Enum.map(fn {reward, _} -> reward end)
-    |> Enum.take(100)
-  end
+  # def gen_random_episode(_percentile) do
+  #   1..10000
+  #   |> Enum.map(fn _ -> random_episode() end)
+  #   |> Enum.sort_by(fn {reward, _} -> reward end, :desc)
+  #   |> Enum.map(fn {reward, _} -> reward end)
+  #   |> Enum.take(100)
+  # end
 
   def random_episode() do
     env = BreakoutEnv.reset()
@@ -74,10 +78,20 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     gen_random_episode(env, observations, 0, [])
   end
 
-  def one_episode_with_params(model, params) do
+  def one_episode_with_params(model, params, init_fn) do
     env = BreakoutEnv.reset()
     env = BreakoutEnv.move_ball_random(env)
     observations = BreakoutEnv.observations(env)
+
+    params =
+      case params do
+        nil ->
+          init_fn.(Nx.template({1, 6}, :f32), %{})
+
+        _ ->
+          params
+      end
+
     one_episode_with_params(env, model, params, observations, 0, [])
   end
 
