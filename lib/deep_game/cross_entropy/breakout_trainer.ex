@@ -11,7 +11,7 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
   def train_model(model) do
     {init_fn, _predict_fn} = Axon.build(model)
     init_random_params = init_fn.(Nx.template({1, 6}, :f32), %{})
-    loop_train(model, init_random_params, 20)
+    loop_train(model, init_random_params, 20, {[], []})
   end
 
   defp test_params(model, params) do
@@ -24,23 +24,30 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     |> IO.inspect(label: "===== TEST REWARDS")
   end
 
-  defp loop_train(_model, params, 0) do
+  defp loop_train(_model, params, 0, _) do
     {:done, params}
   end
 
-  defp loop_train(model, params, n) do
+  defp loop_train(model, params, n, {great_obs, great_actions}) do
     test_params(model, params)
     {observations, actions_groups} = gen_random_episode_with_params(model, params)
+
+    new_good_obs = hd(observations)
+    new_good_actions = hd(actions_groups)
 
     Enum.map(observations, &Enum.count/1)
     |> IO.inspect(label: "Each observations size")
 
-    observations_t = Enum.concat(observations) |> Nx.tensor()
-    actions_22 = Enum.concat(actions_groups)
-    actions_size = Enum.count(actions_22)
+    flat_observations = Enum.concat(observations) ++ great_obs
+    observations_t = flat_observations |> Nx.tensor()
+    flat_actions = Enum.concat(actions_groups) ++ great_actions
+    actions_size = Enum.count(flat_actions)
 
     actions_t =
-      actions_22 |> Nx.tensor() |> Nx.reshape({actions_size, 1}) |> Nx.equal(Nx.tensor([0, 1, 2]))
+      flat_actions
+      |> Nx.tensor()
+      |> Nx.reshape({actions_size, 1})
+      |> Nx.equal(Nx.tensor([0, 1, 2]))
 
     observations_t |> Nx.shape() |> IO.inspect(label: "TT SHAPE")
     actions_t |> Nx.shape() |> IO.inspect(label: "ACTIONS SHAPE")
@@ -49,7 +56,13 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     batched_actions = Nx.to_batched(actions_t, 32)
 
     updated_params = train_model(model, batched_observations, batched_actions)
-    loop_train(model, updated_params, n - 1)
+
+    loop_train(
+      model,
+      updated_params,
+      n - 1,
+      {great_obs ++ new_good_obs, great_actions ++ new_good_actions}
+    )
   end
 
   defp train_model(model, observations, actions) do
