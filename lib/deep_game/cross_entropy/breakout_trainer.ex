@@ -3,16 +3,25 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
 
   def build_model() do
     Axon.input("input", shape: {nil, 6})
-    |> Axon.dense(784, activation: :relu)
-    |> Axon.dense(232, activation: :relu)
-    |> Axon.dense(64, activation: :relu)
+    |> Axon.dense(512, activation: :relu)
+    |> Axon.dense(128, activation: :relu)
     |> Axon.dense(3, activation: :softmax)
   end
 
   def train_model(model) do
     {init_fn, _predict_fn} = Axon.build(model)
     init_random_params = init_fn.(Nx.template({1, 6}, :f32), %{})
-    loop_train(model, {init_random_params, init_fn}, 50)
+    loop_train(model, {init_random_params, init_fn}, 5)
+  end
+
+  def test_params(model, params) do
+    1..100
+    |> Enum.map(fn _ ->
+      {r, _} = one_episode_with_params(model, params, nil)
+      r
+    end)
+    |> Enum.sort(:desc)
+    |> IO.inspect(label: "===== TEST REWARDS")
   end
 
   def loop_train(_model, {params, _}, 0) do
@@ -20,17 +29,26 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
   end
 
   def loop_train(model, {params, init_fn}, n) do
+    test_params(model, params)
     {observations, actions_groups} = gen_random_episode_with_params(model, params, init_fn)
-    observations_t = Enum.map(observations, &Nx.tensor/1)
+
+    Enum.map(observations, &Enum.count/1)
+    |> IO.inspect(label: "Each observations size")
+
+    observations_t = Enum.concat(observations) |> Nx.tensor()
+    actions_22 = Enum.concat(actions_groups)
+    actions_size = Enum.count(actions_22)
 
     actions_t =
-      Enum.map(actions_groups, fn actions ->
-        Enum.map(actions, fn action -> [action] end)
-        |> Nx.tensor()
-        |> Nx.equal(Nx.tensor([0, 1, 2]))
-      end)
+      actions_22 |> Nx.tensor() |> Nx.reshape({actions_size, 1}) |> Nx.equal(Nx.tensor([0, 1, 2]))
 
-    updated_params = train_model(model, observations_t, actions_t)
+    observations_t |> Nx.shape() |> IO.inspect(label: "TT SHAPE")
+    actions_t |> Nx.shape() |> IO.inspect(label: "ACTIONS SHAPE")
+
+    batched_observations = Nx.to_batched(observations_t, 32)
+    batched_actions = Nx.to_batched(actions_t, 32)
+
+    updated_params = train_model(model, batched_observations, batched_actions)
     loop_train(model, {updated_params, init_fn}, n - 1)
   end
 
@@ -40,25 +58,19 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
       :categorical_cross_entropy,
       Polaris.Optimizers.adamw(learning_rate: 0.001)
     )
-    |> Axon.Loop.run(Stream.zip(observations, actions), %{}, epochs: 3, compiler: EXLA)
-  end
-
-  # FIXME: temp fix to keep all tensors in the same shape
-  defp keep_only_same_reward([{reward, _} | _] = l) do
-    Enum.reject(l, fn {r, _} -> r != reward end)
+    |> Axon.Loop.run(Stream.zip(observations, actions), %{}, epochs: 50, compiler: EXLA)
   end
 
   def gen_random_episode_with_params(model, params, init_fn) do
     episode =
-      1..2500
+      1..2000
       |> Enum.map(fn _ -> one_episode_with_params(model, params, init_fn) end)
       |> Enum.sort_by(fn {reward, _} -> reward end, :desc)
-      |> keep_only_same_reward()
-      |> Enum.take(300)
+      |> Enum.take(200)
 
     episode
     |> Enum.map(fn {reward, _} -> reward end)
-    |> IO.inspect(label: "Top 5 rewards: ")
+    |> IO.inspect(label: "Test rewards")
 
     observations =
       Enum.map(episode, fn {_reward, steps} ->
@@ -76,14 +88,6 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
 
     {observations, actions}
   end
-
-  # def gen_random_episode(_percentile) do
-  #   1..10000
-  #   |> Enum.map(fn _ -> random_episode() end)
-  #   |> Enum.sort_by(fn {reward, _} -> reward end, :desc)
-  #   |> Enum.map(fn {reward, _} -> reward end)
-  #   |> Enum.take(100)
-  # end
 
   def random_episode() do
     env = BreakoutEnv.reset()
