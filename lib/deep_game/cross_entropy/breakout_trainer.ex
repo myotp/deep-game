@@ -118,8 +118,9 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
         [_, speed_y, _, _, _, _] when speed_y > 0 ->
           acc
 
-        [_, speed_y, _, _, _, _] when speed_y < 0 ->
-          [{observations, action, reward} | acc]
+        [_, speed_y, ball_x, _, paddle_x, _] when speed_y < 0 ->
+          last_punishment = abs(ball_x - paddle_x) * 20
+          [{observations, action, reward + last_punishment} | acc]
       end
 
     if done? do
