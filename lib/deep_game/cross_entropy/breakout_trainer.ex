@@ -99,7 +99,15 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
   defp one_episode_with_params(env, model, params, observations, total_reward, acc) do
     action = select_action(observations, model, params)
     {env, obs, reward, done?} = BreakoutEnv.step(env, action)
-    acc = [{observations, action, reward} | acc]
+
+    acc =
+      case observations do
+        [_, speed_y, _, _, _, _] when speed_y > 0 ->
+          acc
+
+        [_, speed_y, _, _, _, _] when speed_y < 0 ->
+          [{observations, action, reward} | acc]
+      end
 
     if done? do
       {total_reward, Enum.reverse(acc)}
