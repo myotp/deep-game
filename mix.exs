@@ -34,11 +34,11 @@ defmodule DeepGame.MixProject do
     [
       {:phoenix, "~> 1.7.11"},
       {:phoenix_html, "~> 4.0"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
+      {:phoenix_live_reload, "~> 1.2", only: [:dev, :cuda]},
       {:phoenix_live_view, "~> 0.20.2"},
       {:floki, ">= 0.30.0", only: :test},
-      {:esbuild, "~> 0.8", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev},
+      {:esbuild, "~> 0.8", runtime: Mix.env() == :dev or Mix.env() == :cuda},
+      {:tailwind, "~> 0.2", runtime: Mix.env() == :dev or Mix.env() == :cuda},
       {:heroicons,
        github: "tailwindlabs/heroicons",
        tag: "v2.1.1",
@@ -51,7 +51,8 @@ defmodule DeepGame.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.2"},
-      {:nx, "~> 0.6.4"}
+      {:nx, "~> 0.6.4"},
+      {:exla, "~> 0.6.4"}
     ]
   end
 

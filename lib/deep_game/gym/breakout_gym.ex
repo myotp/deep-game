@@ -19,30 +19,19 @@ defmodule DeepGame.Gym.BreakoutGym do
 
   def get_observation(game) do
     render_info = Breakout.render_info(game)
-
-    background()
-    |> put_paddle(render_info.paddle)
-    |> put_ball(render_info.ball)
-    |> reverse_y()
-    |> condense()
+    {{paddle_r, paddle_c}, paddle} = paddle_to_nx(render_info.paddle)
+    {{ball_r, ball_c}, ball} = ball_to_nx(render_info.ball)
+    render_nx({{paddle_r, paddle_c}, paddle}, {{ball_r, ball_c}, ball})
   end
 
-  defp background() do
-    Nx.broadcast(0, {@screen_height, @screen_width})
-  end
-
-  defp reverse_y(t) do
-    Nx.reverse(t, axes: [0])
-  end
-
-  defp put_paddle(background, paddle) do
+  defp paddle_to_nx(paddle) do
     row = round(paddle.y)
     col = round(paddle.x - paddle.width / 2)
     paddle_t = Nx.broadcast(128, {paddle.height, paddle.width})
-    Nx.put_slice(background, [row, col], paddle_t)
+    {{row, col}, paddle_t}
   end
 
-  defp put_ball(background, ball) do
+  defp ball_to_nx(ball) do
     row = round(ball.y)
     col = round(ball.x - ball.width / 2)
 
@@ -52,7 +41,23 @@ defmodule DeepGame.Gym.BreakoutGym do
         Utils.ball_gray_scales(round(ball.width / 2))
       )
 
-    Nx.put_slice(background, [row, col], ball_t)
+    {{row, col}, ball_t}
+  end
+
+  defn render_nx({{paddle_r, paddle_c}, paddle}, {{ball_r, ball_c}, ball}) do
+    background()
+    |> Nx.put_slice([paddle_r, paddle_c], paddle)
+    |> Nx.put_slice([ball_r, ball_c], ball)
+    |> reverse_y()
+    |> condense()
+  end
+
+  defn background() do
+    Nx.broadcast(0, {@screen_height, @screen_width})
+  end
+
+  defn reverse_y(t) do
+    Nx.reverse(t, axes: [0])
   end
 
   defn condense(t) do
