@@ -5,9 +5,7 @@ defmodule DeepGame.Game.Breakout do
     :game_state,
     :ball,
     :paddle,
-    paddle_direction: 0,
-    ball_direction_x: 1,
-    ball_direction_y: -1
+    paddle_direction: 0
   ]
 
   # APIs for GameLoop
@@ -70,59 +68,59 @@ defmodule DeepGame.Game.Breakout do
     %__MODULE__{game | paddle: %{game.paddle | x: x, y: y}}
   end
 
-  defp update_ball(%__MODULE__{ball: ball, ball_direction_x: dx, ball_direction_y: dy} = game, ts) do
+  defp update_ball(%__MODULE__{ball: ball} = game, ts) do
     %{x: x, y: y, speed_x: speed_x, speed_y: speed_y} = ball
-    x = x + speed_x * dx * ts
-    y = y + speed_y * dy * ts
+    x = x + speed_x * ts
+    y = y + speed_y * ts
 
-    {x, dx} = maybe_bounce_x(x, dx)
-    {y, dy} = maybe_bounce_top(y, dy)
-    {y, dy} = maybe_bounce_paddle(x, y, dy, game.paddle)
-    %__MODULE__{game | ball: %{ball | x: x, y: y}, ball_direction_x: dx, ball_direction_y: dy}
+    {x, speed_x} = maybe_bounce_x(x, speed_x)
+    {y, speed_y} = maybe_bounce_top(y, speed_y)
+    {y, speed_y} = maybe_bounce_paddle(x, y, speed_y, game.paddle)
+    %__MODULE__{game | ball: %{ball | x: x, y: y, speed_x: speed_x, speed_y: speed_y}}
   end
 
-  defp maybe_bounce_x(x, dx) do
+  defp maybe_bounce_x(x, speed_x) do
     cond do
       x < @ball_r ->
         x = @ball_r - x + @ball_r
-        {x, dx * -1}
+        {x, speed_x * -1}
 
       x + @ball_r > @screen_width ->
         d = x + @ball_r - @screen_width
         x = @screen_width - d - @ball_r
-        {x, dx * -1}
+        {x, speed_x * -1}
 
       true ->
-        {x, dx}
+        {x, speed_x}
     end
   end
 
-  defp maybe_bounce_top(y, dy) do
+  defp maybe_bounce_top(y, speed_y) do
     cond do
       y + @ball_r > @screen_height ->
         d = y + @ball_r - @screen_height
         y = @screen_height - d - @ball_r
-        {y, dy * -1}
+        {y, speed_y * -1}
 
       true ->
-        {y, dy}
+        {y, speed_y}
     end
   end
 
-  defp maybe_bounce_paddle(_, y, 1, _) do
-    {y, 1}
+  defp maybe_bounce_paddle(_, y, speed_y, _) when speed_y > 0 do
+    {y, speed_y}
   end
 
-  defp maybe_bounce_paddle(x, y, dy, paddle) do
+  defp maybe_bounce_paddle(x, y, speed_y, paddle) do
     if y - @ball_r - paddle.height / 2 < paddle.y and
          y - paddle.height / 2 > paddle.y and
          x > paddle.x - paddle.width / 2 and
          x < paddle.x + paddle.width / 2 do
       d = paddle.y - (y - @ball_r - paddle.height / 2)
       y = y + d
-      {y, 1}
+      {y, speed_y * -1}
     else
-      {y, dy}
+      {y, speed_y}
     end
   end
 
