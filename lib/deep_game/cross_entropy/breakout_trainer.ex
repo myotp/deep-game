@@ -18,9 +18,16 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
   end
 
   def loop_train(model, {params, init_fn}, n) do
-    {observations, actions} = gen_random_episode_with_params(model, params, init_fn)
-    observations_t = Nx.tensor(observations)
-    actions_t = Nx.tensor(actions)
+    {observations, actions_groups} = gen_random_episode_with_params(model, params, init_fn)
+    observations_t = Enum.map(observations, &Nx.tensor/1)
+
+    actions_t =
+      Enum.map(actions_groups, fn actions ->
+        Enum.map(actions, fn action -> [action] end)
+        |> Nx.tensor()
+        |> Nx.equal(Nx.tensor([0, 1, 2]))
+      end)
+
     updated_params = train_model(model, observations_t, actions_t)
     loop_train(model, {updated_params, init_fn}, n - 1)
   end
@@ -31,18 +38,23 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
       :categorical_cross_entropy,
       Polaris.Optimizers.adamw(learning_rate: 0.005)
     )
-    |> Axon.Loop.run({observations, actions}, %{}, epochs: 1, compiler: EXLA)
+    |> Axon.Loop.run(Stream.zip(observations, actions), %{}, epochs: 1, compiler: EXLA)
+  end
+
+  # FIXME: temp fix to keep all tensors in the same shape
+  defp keep_only_same_reward([{reward, _} | _] = l) do
+    Enum.reject(l, fn {r, _} -> r != reward end)
   end
 
   def gen_random_episode_with_params(model, params, init_fn) do
     episode =
-      1..10000
+      1..100_000
       |> Enum.map(fn _ -> one_episode_with_params(model, params, init_fn) end)
       |> Enum.sort_by(fn {reward, _} -> reward end, :desc)
+      |> keep_only_same_reward()
       |> Enum.take(100)
 
     episode
-    |> Enum.take(5)
     |> Enum.map(fn {reward, _} -> reward end)
     |> IO.inspect(label: "Top 5 rewards: ")
 
