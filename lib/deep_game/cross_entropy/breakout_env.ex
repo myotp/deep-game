@@ -51,6 +51,6 @@ defmodule DeepGame.CrossEntropy.BreakoutEnv do
   end
 
   defp game_to_observations(game) do
-    [game.ball.speed_x, game.ball.speed_y, game.ball.x, game.ball.y, game.paddle.x, game.paddle.y]
+    [game.ball.speed_x, game.ball.speed_y, game.ball.x / 800, game.ball.y / 600, game.paddle.x / 800, game.paddle.y / 600]
   end
 end

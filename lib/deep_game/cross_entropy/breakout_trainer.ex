@@ -3,14 +3,16 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
 
   def build_model() do
     Axon.input("input", shape: {nil, 6})
-    |> Axon.dense(128, activation: :relu)
+    |> Axon.dense(784, activation: :relu)
+    |> Axon.dense(232, activation: :relu)
+    |> Axon.dense(64, activation: :relu)
     |> Axon.dense(3, activation: :softmax)
   end
 
   def train_model(model) do
     {init_fn, _predict_fn} = Axon.build(model)
-    # init_random_params = init_fn.(Nx.template({1, 6}, :f32), %{})
-    loop_train(model, {nil, init_fn}, 3)
+    init_random_params = init_fn.(Nx.template({1, 6}, :f32), %{})
+    loop_train(model, {init_random_params, init_fn}, 50)
   end
 
   def loop_train(_model, {params, _}, 0) do
@@ -36,9 +38,9 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     model
     |> Axon.Loop.trainer(
       :categorical_cross_entropy,
-      Polaris.Optimizers.adamw(learning_rate: 0.005)
+      Polaris.Optimizers.adamw(learning_rate: 0.001)
     )
-    |> Axon.Loop.run(Stream.zip(observations, actions), %{}, epochs: 1, compiler: EXLA)
+    |> Axon.Loop.run(Stream.zip(observations, actions), %{}, epochs: 3, compiler: EXLA)
   end
 
   # FIXME: temp fix to keep all tensors in the same shape
@@ -48,11 +50,11 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
 
   def gen_random_episode_with_params(model, params, init_fn) do
     episode =
-      1..100_000
+      1..2500
       |> Enum.map(fn _ -> one_episode_with_params(model, params, init_fn) end)
       |> Enum.sort_by(fn {reward, _} -> reward end, :desc)
       |> keep_only_same_reward()
-      |> Enum.take(100)
+      |> Enum.take(300)
 
     episode
     |> Enum.map(fn {reward, _} -> reward end)
