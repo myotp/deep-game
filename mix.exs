@@ -52,7 +52,8 @@ defmodule DeepGame.MixProject do
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.2"},
       {:nx, "~> 0.6.4"},
-      {:exla, "~> 0.6.4"}
+      {:exla, "~> 0.6.4"},
+      {:axon, "~> 0.6.0"}
     ]
   end
 
