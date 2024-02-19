@@ -10,27 +10,31 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
 
   def train_model(model) do
     {init_fn, _predict_fn} = Axon.build(model)
-    init_random_params = init_fn.(Nx.template({1, 5}, :f32), %{})
-    loop_train(model, init_random_params, 20)
+    # init_random_params = init_fn.(Nx.template({1, 5}, :f32), %{})
+    loop_train(model, {nil, init_fn}, 20)
+  end
+
+  defp test_params(_model, nil) do
+    :ok
   end
 
   defp test_params(model, params) do
     1..100
     |> Enum.map(fn _ ->
-      {r, _} = one_episode_with_params(model, params)
+      {r, _} = one_episode_with_params(model, params, nil)
       r
     end)
     |> Enum.sort(:desc)
     |> IO.inspect(label: "===== TEST REWARDS")
   end
 
-  defp loop_train(_model, params, 0) do
+  defp loop_train(_model, {params, _}, 0) do
     {:done, params}
   end
 
-  defp loop_train(model, params, n) do
+  defp loop_train(model, {params, init_fn}, n) do
     test_params(model, params)
-    {observations, actions_groups} = gen_random_episode_with_params(model, params)
+    {observations, actions_groups} = gen_random_episode_with_params(model, params, init_fn)
 
     Enum.map(observations, &Enum.count/1)
     |> IO.inspect(label: "Each observations size")
@@ -56,7 +60,7 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
 
     loop_train(
       model,
-      updated_params,
+      {updated_params, init_fn},
       n - 1
     )
   end
@@ -72,10 +76,10 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     |> Axon.Loop.run(Stream.zip(observations, actions), %{}, epochs: 10, compiler: EXLA)
   end
 
-  defp gen_random_episode_with_params(model, params) do
+  defp gen_random_episode_with_params(model, params, init_fn) do
     episode =
       1..5000
-      |> Enum.map(fn _ -> one_episode_with_params(model, params) end)
+      |> Enum.map(fn _ -> one_episode_with_params(model, params, init_fn) end)
       |> Enum.sort_by(fn {reward, _} -> reward end, :desc)
       |> Enum.take(300)
 
@@ -100,10 +104,20 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     {observations, actions}
   end
 
-  defp one_episode_with_params(model, params) do
+  defp one_episode_with_params(model, params, init_fn) do
     env = BreakoutEnv.reset()
     env = BreakoutEnv.move_ball_random(env)
     observations = BreakoutEnv.observations(env)
+
+    params =
+      case params do
+        nil ->
+          init_fn.(Nx.template({1, 5}, :f32), %{})
+
+        _ ->
+          params
+      end
+
     one_episode_with_params(env, model, params, observations, 0, [])
   end
 
