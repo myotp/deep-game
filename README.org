@@ -25,3 +25,8 @@ Nx.slice(t, [0,0], [2, 2])
 t1 = Nx.slice_along_axis(t, 0, x-1, axis: 0, strides: 2)
 # 每隔一列取一列
 t2 = Nx.slice_along_axis(t1, 0, y-1, axis: 1, strides: 2)
+
+* Cross-Entropy Breakout
+alias DeepGame.CrossEntropy.BreakoutTrainer, as: BT
+model = BT.build_model()
+{:done, trained_params} = BT.train_model(model)
