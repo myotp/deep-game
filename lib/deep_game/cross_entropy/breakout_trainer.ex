@@ -67,11 +67,13 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
   end
 
   defp train_model(model, observations, actions) do
+    loss_fn = fn y_true, y_pred ->
+      Axon.Losses.categorical_cross_entropy(y_true, y_pred, sparse: true)
+    end
+
     model
-    |> Axon.Loop.trainer(
-      :categorical_cross_entropy,
-      Polaris.Optimizers.adam(learning_rate: 0.01)
-    )
+    |> Axon.activation(:softmax)
+    |> Axon.Loop.trainer(loss_fn, Polaris.Optimizers.adam(learning_rate: 0.01))
     |> Axon.Loop.run(Stream.zip(observations, actions), %{}, epochs: 10, compiler: EXLA)
   end
 
