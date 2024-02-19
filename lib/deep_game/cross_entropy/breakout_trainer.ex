@@ -5,6 +5,7 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     Axon.input("input", shape: {nil, 6})
     |> Axon.dense(256, activation: :relu)
     |> Axon.dropout(rate: 0.2)
+    # No softmax here
     |> Axon.dense(3)
   end
 
@@ -69,7 +70,7 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     model
     |> Axon.Loop.trainer(
       :categorical_cross_entropy,
-      Polaris.Optimizers.adamw(learning_rate: 0.001)
+      Polaris.Optimizers.adam(learning_rate: 0.01)
     )
     |> Axon.Loop.run(Stream.zip(observations, actions), %{}, epochs: 10, compiler: EXLA)
   end
