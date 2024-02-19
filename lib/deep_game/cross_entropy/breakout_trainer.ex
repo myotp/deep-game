@@ -4,9 +4,8 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
   def build_model() do
     Axon.input("input", shape: {nil, 6})
     |> Axon.dense(256, activation: :relu)
-    |> Axon.dropout(rate: 0.2)
     # No softmax here
-    |> Axon.dense(3)
+    |> Axon.dense(3, activation: :softmax)
   end
 
   def train_model(model) do
@@ -72,7 +71,7 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     end
 
     model
-    |> Axon.activation(:softmax)
+    # |> Axon.activation(:softmax)
     |> Axon.Loop.trainer(loss_fn, Polaris.Optimizers.adam(learning_rate: 0.01))
     |> Axon.Loop.run(Stream.zip(observations, actions), %{}, epochs: 10, compiler: EXLA)
   end
@@ -138,7 +137,7 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
 
     Axon.predict(model, params, obs_t)
     |> Nx.squeeze()
-    |> Axon.Activations.softmax()
+    # |> Axon.Activations.softmax()
     |> Nx.to_list()
     |> random_action()
   end
