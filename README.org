@@ -30,3 +30,18 @@ t2 = Nx.slice_along_axis(t1, 0, y-1, axis: 1, strides: 2)
 alias DeepGame.CrossEntropy.BreakoutTrainer, as: BT
 model = BT.build_model()
 {:done, trained_params} = BT.train_model(model)
+
+alias DeepGame.CrossEntropy.BreakoutTrainer, as: BT
+model = BT.build_model()
+{init_fn, pred_fn} = Axon.build(model)
+params = init_fn.(Nx.template({1, 5}, :f32), %{})
+
+alias DeepGame.CrossEntropy.BreakoutEnv, as: Env
+env = Env.reset()
+env = Env.move_ball_random(env)
+observations = Env.observations(env)
+
+obs = [ [0.425, -0.575, 0.16, 0.62, 0.5],
+        [0.425, -0.575, 0.20, 0.52, 0.4],
+        [0.425, -0.575, 0.20, 0.30, 0.2] ]
+Enum.map(obs, fn ob -> BT.select_action(ob, model, params) end)

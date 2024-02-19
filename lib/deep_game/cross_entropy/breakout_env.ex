@@ -1,6 +1,8 @@
 defmodule DeepGame.CrossEntropy.BreakoutEnv do
   alias DeepGame.Game.Breakout
 
+  @tick_interval 50
+
   defstruct [:game, :observations]
 
   def reset() do
@@ -61,17 +63,16 @@ defmodule DeepGame.CrossEntropy.BreakoutEnv do
   defp game_update(game, input) do
     game
     |> Breakout.handle_input(input)
-    |> Breakout.update(16)
+    |> Breakout.update(@tick_interval)
   end
 
   defp game_to_observations(game) do
     [
-      game.ball.speed_x,
-      game.ball.speed_y,
+      game.ball.speed_x / 800 * @tick_interval,
+      game.ball.speed_y / 600 * @tick_interval,
       game.ball.x / 800,
       game.ball.y / 600,
-      game.paddle.x / 800,
-      game.paddle.y / 600
+      game.paddle.x / 800
     ]
   end
 end

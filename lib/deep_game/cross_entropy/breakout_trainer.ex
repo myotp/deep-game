@@ -2,7 +2,7 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
   alias DeepGame.CrossEntropy.BreakoutEnv
 
   def build_model() do
-    Axon.input("input", shape: {nil, 6})
+    Axon.input("input", shape: {nil, 5})
     |> Axon.dense(256, activation: :relu)
     # No softmax here
     |> Axon.dense(3, activation: :softmax)
@@ -10,7 +10,7 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
 
   def train_model(model) do
     {init_fn, _predict_fn} = Axon.build(model)
-    init_random_params = init_fn.(Nx.template({1, 6}, :f32), %{})
+    init_random_params = init_fn.(Nx.template({1, 5}, :f32), %{})
     loop_train(model, init_random_params, 20, {[], []})
   end
 
@@ -66,13 +66,13 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
   end
 
   defp train_model(model, observations, actions) do
-    loss_fn = fn y_true, y_pred ->
-      Axon.Losses.categorical_cross_entropy(y_true, y_pred, sparse: true)
-    end
+    # loss_fn = fn y_true, y_pred ->
+    #   Axon.Losses.categorical_cross_entropy(y_true, y_pred, sparse: true)
+    # end
 
     model
     # |> Axon.activation(:softmax)
-    |> Axon.Loop.trainer(loss_fn, Polaris.Optimizers.adam(learning_rate: 0.01))
+    |> Axon.Loop.trainer(:categorical_cross_entropy, Polaris.Optimizers.adam(learning_rate: 0.01))
     |> Axon.Loop.run(Stream.zip(observations, actions), %{}, epochs: 10, compiler: EXLA)
   end
 
@@ -132,7 +132,7 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     end
   end
 
-  defp select_action(observations, model, params) do
+  def select_action(observations, model, params) do
     obs_t = Nx.tensor([observations])
 
     Axon.predict(model, params, obs_t)
