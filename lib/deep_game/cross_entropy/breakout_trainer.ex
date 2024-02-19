@@ -11,7 +11,7 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
   def train_model(model) do
     {init_fn, _predict_fn} = Axon.build(model)
     init_random_params = init_fn.(Nx.template({1, 5}, :f32), %{})
-    loop_train(model, init_random_params, 20, {[], []})
+    loop_train(model, init_random_params, 20)
   end
 
   defp test_params(model, params) do
@@ -24,23 +24,20 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     |> IO.inspect(label: "===== TEST REWARDS")
   end
 
-  defp loop_train(_model, params, 0, _) do
+  defp loop_train(_model, params, 0) do
     {:done, params}
   end
 
-  defp loop_train(model, params, n, {great_obs, great_actions}) do
+  defp loop_train(model, params, n) do
     test_params(model, params)
     {observations, actions_groups} = gen_random_episode_with_params(model, params)
-
-    new_good_obs = hd(observations)
-    new_good_actions = hd(actions_groups)
 
     Enum.map(observations, &Enum.count/1)
     |> IO.inspect(label: "Each observations size")
 
-    flat_observations = Enum.concat(observations) ++ great_obs
+    flat_observations = Enum.concat(observations)
     observations_t = flat_observations |> Nx.tensor()
-    flat_actions = Enum.concat(actions_groups) ++ great_actions
+    flat_actions = Enum.concat(actions_groups)
     actions_size = Enum.count(flat_actions)
 
     actions_t =
@@ -60,8 +57,7 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
     loop_train(
       model,
       updated_params,
-      n - 1,
-      {great_obs ++ new_good_obs, great_actions ++ new_good_actions}
+      n - 1
     )
   end
 
