@@ -1,7 +1,7 @@
 defmodule DeepGame.CrossEntropy.BreakoutEnv do
   alias DeepGame.Game.Breakout
 
-  @tick_interval 50
+  @tick_interval 25
 
   defstruct [:game, :observations]
 
@@ -27,7 +27,7 @@ defmodule DeepGame.CrossEntropy.BreakoutEnv do
   def random_ball(ball) do
     %{
       ball
-      | y: Enum.random(350..420),
+      | y: Enum.random(520..580),
         x: Enum.random(100..700),
         speed_y: random_speed_y(),
         speed_x: random_speed_x()

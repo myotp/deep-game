@@ -3,7 +3,7 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
 
   def build_model() do
     Axon.input("input", shape: {nil, 5})
-    |> Axon.dense(256, activation: :relu)
+    |> Axon.dense(32, activation: :relu)
     # No softmax here
     |> Axon.dense(3, activation: :softmax)
   end
@@ -74,10 +74,10 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
 
   defp gen_random_episode_with_params(model, params) do
     episode =
-      1..2000
+      1..5000
       |> Enum.map(fn _ -> one_episode_with_params(model, params) end)
       |> Enum.sort_by(fn {reward, _} -> reward end, :desc)
-      |> Enum.take(10)
+      |> Enum.take(300)
 
     episode
     |> Enum.map(fn {reward, _} -> reward end)
@@ -141,6 +141,10 @@ defmodule DeepGame.CrossEntropy.BreakoutTrainer do
   defp random_action(action_probs) do
     score = :rand.uniform()
     random_action(score, action_probs, 0)
+  end
+
+  defp random_action(_score, [_], n) do
+    n
   end
 
   defp random_action(score, [h | t], n) do
