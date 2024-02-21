@@ -45,3 +45,9 @@ obs = [ [0.425, -0.575, 0.16, 0.62, 0.5],
         [0.425, -0.575, 0.20, 0.52, 0.4],
         [0.425, -0.575, 0.20, 0.30, 0.2] ]
 Enum.map(obs, fn ob -> BT.select_action(ob, model, params) end)
+
+* Gym
+alias DeepGame.Game.Breakout, as: Game
+alias DeepGame.Gym.BreakoutGym, as: Gym
+game = Game.new()
+Gym.get_observation(game) |> Nx.to_heatmap()

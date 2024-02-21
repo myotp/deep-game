@@ -44,12 +44,12 @@ defmodule DeepGame.Gym.BreakoutGym do
     {{row, col}, ball_t}
   end
 
-  defn render_nx({{paddle_r, paddle_c}, paddle}, {{ball_r, ball_c}, ball}) do
+  def render_nx({{paddle_r, paddle_c}, paddle}, {{ball_r, ball_c}, ball}) do
     background()
     |> Nx.put_slice([paddle_r, paddle_c], paddle)
     |> Nx.put_slice([ball_r, ball_c], ball)
     |> reverse_y()
-    |> condense()
+    |> downsize_with_cnn()
   end
 
   defn background() do
@@ -60,12 +60,38 @@ defmodule DeepGame.Gym.BreakoutGym do
     Nx.reverse(t, axes: [0])
   end
 
-  defn condense(t) do
+  defn naive_downsize(t) do
     {row, col} = Nx.shape(t)
 
     t
     |> Nx.window_sum({4, 4})
     |> Nx.slice_along_axis(0, row - 3, axis: 0, strides: 4)
     |> Nx.slice_along_axis(0, col - 3, axis: 1, strides: 4)
+  end
+
+  def downsize_with_cnn(t) do
+    {row, col} = Nx.shape(t)
+    model = build_model(row, col)
+    {_init_fn, pred_fn} = Axon.build(model)
+    params = %{"conv_0" => %{"kernel" => filter_2x2()}}
+    input = Nx.reshape(t, {1, row, col, 1})
+    result = pred_fn.(params, input)
+    {1, row, col, 1} = Nx.shape(result)
+    Nx.reshape(result, {row, col})
+  end
+
+  def filter_2x2() do
+    Nx.tensor([
+      [1, 1],
+      [1, 1]
+    ])
+    |> Nx.reshape({2, 2, 1, 1})
+  end
+
+  def build_model(x, y) do
+    Axon.input("input", shape: {nil, x, y, 1})
+    |> Axon.conv(1, kernel_size: {2, 2}, padding: :valid, use_bias: false)
+    # maybe max_pool?
+    |> Axon.avg_pool(kernel_size: {4, 4}, padding: :valid)
   end
 end
