@@ -1,6 +1,6 @@
 defmodule DeepGame.Examples.DemoBreakout do
   alias DeepGame.Game.Breakout
-  alias DeepGame.Gym.BreakoutGym
+  alias DeepGame.Gym.BreakoutEnv
 
   def run(0) do
     :done
@@ -43,7 +43,7 @@ defmodule DeepGame.Examples.DemoBreakout do
   defp maybe_show_game_heatmap(game, 33) do
     IO.puts("-- screen --")
 
-    BreakoutGym.get_observation(game)
+    BreakoutEnv.get_observation(game)
     |> Nx.to_heatmap()
     |> IO.inspect()
   end

@@ -1,4 +1,4 @@
-defmodule DeepGame.Gym.BreakoutGym do
+defmodule DeepGame.Gym.BreakoutEnv do
   use DeepGame.Game.BreakoutConst
   alias DeepGame.Gym.Utils
   import Nx.Defn
