@@ -1,97 +1,70 @@
 defmodule DeepGame.Gym.BreakoutEnv do
-  use DeepGame.Game.BreakoutConst
-  alias DeepGame.Gym.Utils
-  import Nx.Defn
-
   alias DeepGame.Game.Breakout
+
+  defstruct [
+    :game,
+    :obs_mod,
+    :game_loop_interval
+  ]
+
+  @action_stop 0
+  @action_left 1
+  @action_right 2
+
+  @game_loop_inteval 16
+
   # DRL Environment APIs
-  def get_actions(_game) do
-    [:left, :stop, :right]
-  end
-
-  def is_done?(game) do
-    game.state != :running
-  end
-
-  def action(game, action) do
-    Breakout.handle_input(game, action)
-  end
-
-  def get_observation(game) do
-    render_info = Breakout.render_info(game)
-    {{paddle_r, paddle_c}, paddle} = paddle_to_nx(render_info.paddle)
-    {{ball_r, ball_c}, ball} = ball_to_nx(render_info.ball)
-    render_nx({{paddle_r, paddle_c}, paddle}, {{ball_r, ball_c}, ball})
-  end
-
-  defp paddle_to_nx(paddle) do
-    row = round(paddle.y)
-    col = round(paddle.x - paddle.width / 2)
-    paddle_t = Nx.broadcast(128, {paddle.height, paddle.width})
-    {{row, col}, paddle_t}
-  end
-
-  defp ball_to_nx(ball) do
-    row = round(ball.y)
-    col = round(ball.x - ball.width / 2)
-
-    ball_t =
-      Nx.multiply(
-        Nx.broadcast(200, {ball.height, ball.width}),
-        Utils.ball_gray_scales(round(ball.width / 2))
+  def new(opts \\ []) do
+    opts =
+      Keyword.validate!(opts,
+        obs_mod: DeepGame.Gym.BreakoutGuiObs,
+        game_loop_inteval: @game_loop_inteval
       )
 
-    {{row, col}, ball_t}
+    %__MODULE__{
+      game: Breakout.new(),
+      obs_mod: opts[:obs_mod],
+      game_loop_interval: opts[:game_loop_inteval]
+    }
   end
 
-  def render_nx({{paddle_r, paddle_c}, paddle}, {{ball_r, ball_c}, ball}) do
-    background()
-    |> Nx.put_slice([paddle_r, paddle_c], paddle)
-    |> Nx.put_slice([ball_r, ball_c], ball)
-    |> reverse_y()
-    |> downsize_with_cnn()
+  def reset(env) do
+    game = Breakout.new()
+    %__MODULE__{env | game: game}
   end
 
-  defn background() do
-    Nx.broadcast(0, {@screen_height, @screen_width})
+  def get_actions(_env) do
+    [@action_stop, @action_left, @action_right]
   end
 
-  defn reverse_y(t) do
-    Nx.reverse(t, axes: [0])
+  def is_done?(env) do
+    game_done?(env.game)
   end
 
-  defn naive_downsize(t) do
-    {row, col} = Nx.shape(t)
-
-    t
-    |> Nx.window_sum({4, 4})
-    |> Nx.slice_along_axis(0, row - 3, axis: 0, strides: 4)
-    |> Nx.slice_along_axis(0, col - 3, axis: 1, strides: 4)
+  def step(env, action) do
+    input = action_to_input(action)
+    game = game_update(env.game, input, env.game_loop_inteval)
+    new_env = %__MODULE__{env | game: game}
+    observation = env.obs_mod.game_to_observation(game)
+    reward = 1
+    {new_env, reward, game_done?(game)}
   end
 
-  def downsize_with_cnn(t) do
-    {row, col} = Nx.shape(t)
-    model = build_model(row, col)
-    {_init_fn, pred_fn} = Axon.build(model)
-    params = %{"conv_0" => %{"kernel" => filter_2x2()}}
-    input = Nx.reshape(t, {1, row, col, 1})
-    result = pred_fn.(params, input)
-    {1, row, col, 1} = Nx.shape(result)
-    Nx.reshape(result, {row, col})
+  defp action_to_input(@action_stop), do: :stop
+  defp action_to_input(@action_left), do: :left
+  defp action_to_input(@action_right), do: :right
+
+  defp game_update(game, input, game_loop_interval) do
+    game
+    |> Breakout.handle_input(input)
+    |> Breakout.update(game_loop_interval)
   end
 
-  def filter_2x2() do
-    Nx.tensor([
-      [1, 1],
-      [1, 1]
-    ])
-    |> Nx.reshape({2, 2, 1, 1})
+  defp game_done?(game) do
+    game.game_state != :running
   end
 
-  def build_model(x, y) do
-    Axon.input("input", shape: {nil, x, y, 1})
-    |> Axon.conv(1, kernel_size: {2, 2}, padding: :valid, use_bias: false)
-    # maybe max_pool?
-    |> Axon.avg_pool(kernel_size: {4, 4}, padding: :valid)
+  def dirty_set!(env, attrs) do
+    env
   end
 end
